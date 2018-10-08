@@ -17,4 +17,6 @@ require('./startup/routes')(app)
 require('./startup/database')()
 
 // Server
-require('./startup/server')(app)
+const server = require('./startup/server')(app)
+
+module.exports = server

@@ -5,10 +5,11 @@ const Joi = require('joi')
 const { Genre, validateGenre } = require('../models/Genre')
 const auth = require('../middleware/auth')
 const admin = require('../middleware/admin')
+const validateId = require('../middleware/validateId')
 
 const router = express.Router()
 
-// Validation and updating records is not very good here, check customers.js for reference
+// updating records is not very good here, check customers.js for reference
 
 // Utils
 const findGenre = async (id, res) => {
@@ -24,13 +25,15 @@ router.get('/', async (req, res) => {
   res.send(genres)
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateId , async (req, res) => {
   const genre = await findGenre(req.params.id, res)
   res.send(genre)
 })
 
 router.post('/', auth, async (req, res) => {
-  validateGenre(req.body, res)
+  const error = validateGenre(req.body, res)
+
+  if(error) return res.status(400).send(error.message)
 
   const genre = new Genre({
     name: req.body.name
@@ -42,11 +45,13 @@ router.post('/', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
   const genre = await findGenre(req.params.id, res)
-  validateGenre(req.body, res)
+  const error = validateGenre(req.body, res)
+
+  if(error) return res.status(400).send(error.message)
 
   genre.name = req.body.name
 
-  genre.save()  
+  await genre.save()  
   res.send(genre)
 })
 
